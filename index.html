@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3498db">
+    <title>Brendita Brend - Aplicación de Recordatorios</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon-512.png" type="image/png">
+    <style>
+        :root {
+            --critical-color: #e74c3c;
+            --medium-color: #f39c12;
+            --low-color: #2ecc71;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--card-background);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            color: var(--text-color);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .datetime {
+            font-size: 1.2rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .backup-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .backup-button {
+            padding: 10px 16px;
+            background-color: #ffffff;
+            color: #3498db;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .backup-button:hover {
+            background-color: #eaf4fb;
+        }
+
+        .backup-note {
+            width: 100%;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .sections-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: space-between;
+        }
+
+        .section {
+            flex: 1;
+            min-width: 300px;
+            background-color: var(--card-background);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .section-counters {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .section-counters .overdue-count {
+            color: var(--critical-color);
+            font-weight: 700;
+        }
+
+        .section-actions {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .clear-completed-button {
+            padding: 8px 12px;
+            background-color: #ffffff;
+            color: #666;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .clear-completed-button:hover {
+            background-color: #f0f0f0;
+        }
+
+        .task-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .priority-selector {
+            display: flex;
+            gap: 10px;
+        }
+
+        .priority-option {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 5px;
+            background-color: white;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .priority-option:hover {
+            transform: translateY(-2px);
+        }
+
+        .priority-option.selected {
+            color: white;
+        }
+
+        .priority-option.critical.selected {
+            background-color: var(--critical-color);
+            border-color: var(--critical-color);
+        }
+
+        .priority-option.medium.selected {
+            background-color: var(--medium-color);
+            border-color: var(--medium-color);
+        }
+
+        .priority-option.low.selected {
+            background-color: var(--low-color);
+            border-color: var(--low-color);
+        }
+
+        .prio-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.25em;
+            height: 1.25em;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.85em;
+            line-height: 1;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .task-input {
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .task-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .due-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .due-row label {
+            flex: 1;
+            min-width: 140px;
+            font-size: 0.9rem;
+            color: #666;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .due-row input {
+            padding: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1rem;
+            font-family: inherit;
+            width: 100%;
+        }
+
+        .add-button {
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .add-button:hover {
+            background-color: #2980b9;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .task-item {
+            padding: 15px;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .task-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-item.critical {
+            background-color: #fff;
+            border-left: 5px solid var(--critical-color);
+        }
+
+        .task-item.medium {
+            background-color: #fff;
+            border-left: 5px solid var(--medium-color);
+        }
+
+        .task-item.low {
+            background-color: #fff;
+            border-left: 5px solid var(--low-color);
+        }
+
+        .task-item.overdue {
+            border: 2px solid var(--critical-color);
+            border-left: 5px solid var(--critical-color);
+        }
+
+        .task-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .task-text {
+            font-size: 1.1rem;
+            flex: 1;
+            transition: all 0.3s;
+            word-break: break-word;
+        }
+
+        .task-text.completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .task-due {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .task-due .overdue-label {
+            color: var(--critical-color);
+            font-weight: 700;
+        }
+
+        .task-edit-input {
+            flex: 1;
+            padding: 8px 10px;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            font-family: inherit;
+        }
+
+        .task-progress {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .progress-selector {
+            padding: 5px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        .edit-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            transition: background-color 0.3s;
+        }
+
+        .edit-button:hover {
+            background-color: #2980b9;
+        }
+
+        .delete-button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            transition: background-color 0.3s;
+        }
+
+        .delete-button:hover {
+            background-color: #c0392b;
+        }
+
+        .progress-bar {
+            height: 8px;
+            width: 100%;
+            background-color: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: var(--critical-color);
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-close {
+            float: right;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .stop-alarm-button {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background-color: #ffffff;
+            color: var(--critical-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 768px) {
+            .sections-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Brendita Brend</h1>
+            <div class="datetime" id="datetime"></div>
+        </header>
+
+        <div class="backup-bar">
+            <button class="backup-button" id="export-backup" type="button">Exportar respaldo</button>
+            <button class="backup-button" id="import-backup-button" type="button">Importar respaldo</button>
+            <input type="file" id="import-backup" accept="application/json,.json" hidden>
+            <p class="backup-note">Tus tareas se guardan solo en este celular. Exporta un respaldo de vez en cuando para no perderlas si cambias de teléfono.</p>
+        </div>
+
+        <div class="sections-container">
+            <section class="section" id="liomont-section">
+                <h2 class="section-title">Pendientes de Liomont</h2>
+                <p class="section-counters" id="liomont-counters"></p>
+
+                <div class="task-form">
+                    <div class="priority-selector">
+                        <div class="priority-option critical" data-priority="1">
+                            <span class="prio-icon">!</span> Crítico
+                        </div>
+                        <div class="priority-option medium selected" data-priority="2">
+                            <span class="prio-icon">▲</span> Medio
+                        </div>
+                        <div class="priority-option low" data-priority="3">
+                            <span class="prio-icon">i</span> Bajo
+                        </div>
+                    </div>
+
+                    <input type="text" class="task-input" placeholder="Descripción de la tarea">
+
+                    <div class="due-row">
+                        <label>Fecha límite (opcional)
+                            <input type="date" class="due-date">
+                        </label>
+                        <label>Hora del recordatorio (opcional)
+                            <input type="time" class="due-time">
+                        </label>
+                    </div>
+
+                    <button class="add-button">
+                        + Agregar Tarea
+                    </button>
+                </div>
+
+                <div class="task-list" id="liomont-tasks"></div>
+                <div class="section-actions">
+                    <button class="clear-completed-button" data-section="liomont" type="button">Limpiar completadas</button>
+                </div>
+            </section>
+
+            <section class="section" id="brenda-section">
+                <h2 class="section-title">Pendientes de Brenda</h2>
+                <p class="section-counters" id="brenda-counters"></p>
+
+                <div class="task-form">
+                    <div class="priority-selector">
+                        <div class="priority-option critical" data-priority="1">
+                            <span class="prio-icon">!</span> Crítico
+                        </div>
+                        <div class="priority-option medium selected" data-priority="2">
+                            <span class="prio-icon">▲</span> Medio
+                        </div>
+                        <div class="priority-option low" data-priority="3">
+                            <span class="prio-icon">i</span> Bajo
+                        </div>
+                    </div>
+
+                    <input type="text" class="task-input" placeholder="Descripción de la tarea">
+
+                    <div class="due-row">
+                        <label>Fecha límite (opcional)
+                            <input type="date" class="due-date">
+                        </label>
+                        <label>Hora del recordatorio (opcional)
+                            <input type="time" class="due-time">
+                        </label>
+                    </div>
+
+                    <button class="add-button">
+                        + Agregar Tarea
+                    </button>
+                </div>
+
+                <div class="task-list" id="brenda-tasks"></div>
+                <div class="section-actions">
+                    <button class="clear-completed-button" data-section="brenda" type="button">Limpiar completadas</button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        <span class="notification-close">×</span>
+        <p id="notification-message"></p>
+        <button class="stop-alarm-button" id="stop-alarm" type="button" hidden>Detener alarma</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Registrar el Service Worker para uso offline (seguro: si falla, la app sigue funcionando)
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js').catch(function() {});
+            }
+
+            // Actualizar fecha y hora
+            function updateDateTime() {
+                const now = new Date();
+                const options = {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                };
+                document.getElementById('datetime').textContent = now.toLocaleDateString('es-ES', options);
+            }
+
+            updateDateTime();
+            setInterval(updateDateTime, 60000); // Actualizar cada minuto
+
+            // Variables globales
+            let tasks = {
+                liomont: [],
+                brenda: []
+            };
+
+            // Normalizar una tarea: las tareas viejas pueden no tener los campos nuevos
+            function normalizeTask(task) {
+                return {
+                    id: task.id || Date.now() + Math.floor(Math.random() * 1000),
+                    text: typeof task.text === 'string' ? task.text : '',
+                    priority: [1, 2, 3].indexOf(task.priority) !== -1 ? task.priority : 2,
+                    progress: typeof task.progress === 'number' ? task.progress : 0,
+                    completed: task.completed === true || task.progress === 100,
+                    dueDate: typeof task.dueDate === 'string' ? task.dueDate : '',
+                    dueTime: typeof task.dueTime === 'string' ? task.dueTime : '',
+                    reminded: task.reminded === true
+                };
+            }
+
+            // Cargar tareas desde localStorage (misma clave de siempre: 'brenditaBrendTasks')
+            function loadTasks() {
+                const savedTasks = localStorage.getItem('brenditaBrendTasks');
+                if (savedTasks) {
+                    try {
+                        const parsed = JSON.parse(savedTasks);
+                        tasks = {
+                            liomont: Array.isArray(parsed.liomont) ? parsed.liomont.map(normalizeTask) : [],
+                            brenda: Array.isArray(parsed.brenda) ? parsed.brenda.map(normalizeTask) : []
+                        };
+                    } catch (e) {
+                        tasks = { liomont: [], brenda: [] };
+                    }
+                    renderTasks('liomont');
+                    renderTasks('brenda');
+                }
+            }
+
+            // Guardar tareas en localStorage
+            function saveTasks() {
+                localStorage.setItem('brenditaBrendTasks', JSON.stringify(tasks));
+            }
+
+            function getSectionLabel(sectionName) {
+                return sectionName === 'liomont' ? 'Liomont' : 'Brenda';
+            }
+
+            function dueDateTime(task) {
+                if (!task.dueDate) return null;
+                return new Date(task.dueDate + 'T' + (task.dueTime || '23:59') + ':00');
+            }
+
+            function isOverdue(task) {
+                if (task.completed || !task.dueDate) return false;
+                const due = dueDateTime(task);
+                return due !== null && due.getTime() < Date.now();
+            }
+
+            function formatDue(task) {
+                if (!task.dueDate) return '';
+                const due = dueDateTime(task);
+                if (!due || isNaN(due.getTime())) return '';
+                const dateText = due.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+                return task.dueTime ? dateText + ' · ' + task.dueTime : dateText;
+            }
+
+            // Alarma sonora con Web Audio: pitidos de 880 Hz en ciclos, sin archivos externos
+            let audioContext = null;
+            let alarmTimer = null;
+            let alarmCycle = 0;
+
+            function beep(when) {
+                const oscillator = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 880;
+                gain.gain.setValueAtTime(0.5, when);
+                gain.gain.exponentialRampToValueAtTime(0.01, when + 0.3);
+                oscillator.connect(gain);
+                gain.connect(audioContext.destination);
+                oscillator.start(when);
+                oscillator.stop(when + 0.35);
+            }
+
+            function playAlarm() {
+                try {
+                    if (!audioContext) {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (audioContext.state === 'suspended') {
+                        audioContext.resume();
+                    }
+                    // Desbloquear el audio con el primer toque del usuario cuando sea posible
+                    const now = audioContext.currentTime;
+                    for (let i = 0; i < 3; i++) {
+                        beep(now + i * 0.4);
+                    }
+                    alarmCycle = 1;
+                    if (alarmTimer) clearInterval(alarmTimer);
+                    alarmTimer = setInterval(function() {
+                        if (!audioContext || alarmCycle >= 6) {
+                            stopAlarm();
+                            return;
+                        }
+                        const t = audioContext.currentTime;
+                        for (let i = 0; i < 3; i++) {
+                            beep(t + i * 0.4);
+                        }
+                        alarmCycle++;
+                    }, 2500);
+                    if (navigator.vibrate) {
+                        navigator.vibrate([300, 200, 300, 200, 300]);
+                    }
+                } catch (e) {
+                    // Sin audio disponible: la notificación en pantalla sigue mostrando el aviso
+                }
+            }
+
+            function stopAlarm() {
+                if (alarmTimer) {
+                    clearInterval(alarmTimer);
+                    alarmTimer = null;
+                }
+                alarmCycle = 0;
+                document.getElementById('stop-alarm').hidden = true;
+            }
+
+            document.getElementById('stop-alarm').addEventListener('click', function() {
+                stopAlarm();
+                document.getElementById('notification').classList.remove('show');
+            });
+
+            // Revisar recordatorios vencidos: suena la alarma con la app abierta
+            function checkReminders() {
+                const due = [];
+                ['liomont', 'brenda'].forEach(function(sectionName) {
+                    tasks[sectionName].forEach(function(task) {
+                        if (!task.completed && !task.reminded && task.dueDate && dueDateTime(task) && dueDateTime(task).getTime() <= Date.now()) {
+                            task.reminded = true;
+                            due.push({ task: task, section: sectionName });
+                        }
+                    });
+                });
+                if (due.length > 0) {
+                    saveTasks();
+                    due.forEach(function(item) {
+                        showNotification('Recordatorio (' + getSectionLabel(item.section) + '): ' + item.task.text, true);
+                    });
+                    playAlarm();
+                    renderTasks('liomont');
+                    renderTasks('brenda');
+                }
+            }
+
+            // Configurar eventos para las secciones
+            function setupSectionEvents(sectionName) {
+                const section = document.getElementById(sectionName + '-section');
+                const priorityOptions = section.querySelectorAll('.priority-option');
+                const taskInput = section.querySelector('.task-input');
+                const dueDateInput = section.querySelector('.due-date');
+                const dueTimeInput = section.querySelector('.due-time');
+                const addButton = section.querySelector('.add-button');
+                let selectedPriority = 2; // Por defecto: Medio
+
+                // Evento para seleccionar prioridad
+                priorityOptions.forEach(function(option) {
+                    option.addEventListener('click', function() {
+                        priorityOptions.forEach(function(opt) { opt.classList.remove('selected'); });
+                        this.classList.add('selected');
+                        selectedPriority = parseInt(this.dataset.priority, 10);
+                        // Desbloquear el audio con este toque, para que la alarma pueda sonar después
+                        try {
+                            if (!audioContext) {
+                                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                            }
+                            if (audioContext.state === 'suspended') {
+                                audioContext.resume();
+                            }
+                        } catch (e) {}
+                    });
+                });
+
+                // Agregar tarea con Enter en la descripción
+                taskInput.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        addButton.click();
+                    }
+                });
+
+                // Evento para agregar tarea
+                addButton.addEventListener('click', function() {
+                    const taskText = taskInput.value.trim();
+
+                    if (!taskText) {
+                        showNotification('Por favor, ingresa una descripción para la tarea.');
+                        return;
+                    }
+
+                    if (!selectedPriority) {
+                        showNotification('Por favor, selecciona una prioridad para la tarea.');
+                        return;
+                    }
+
+                    const newTask = {
+                        id: Date.now(),
+                        text: taskText,
+                        priority: selectedPriority,
+                        progress: 0,
+                        completed: false,
+                        dueDate: dueDateInput.value || '',
+                        dueTime: dueTimeInput.value || '',
+                        reminded: false
+                    };
+
+                    tasks[sectionName].push(newTask);
+                    saveTasks();
+                    renderTasks(sectionName);
+
+                    // Resetear formulario: prioridad por defecto Medio (2)
+                    taskInput.value = '';
+                    dueDateInput.value = '';
+                    dueTimeInput.value = '';
+                    priorityOptions.forEach(function(opt) { opt.classList.remove('selected'); });
+                    const mediumOption = section.querySelector('.priority-option[data-priority="2"]');
+                    if (mediumOption) mediumOption.classList.add('selected');
+                    selectedPriority = 2;
+                    taskInput.focus();
+                });
+            }
+
+            // Contadores por sección
+            function updateCounters(sectionName) {
+                const list = tasks[sectionName];
+                const pending = list.filter(function(t) { return !t.completed; }).length;
+                const critical = list.filter(function(t) { return t.priority === 1 && !t.completed; }).length;
+                const overdue = list.filter(isOverdue).length;
+                const el = document.getElementById(sectionName + '-counters');
+                el.textContent = pending + ' pendiente(s) · ' + critical + ' crítica(s)';
+                if (overdue > 0) {
+                    const span = document.createElement('span');
+                    span.className = 'overdue-count';
+                    span.textContent = ' · ' + overdue + ' vencida(s)';
+                    el.appendChild(span);
+                }
+            }
+
+            // Renderizar tareas (construidas con DOM/textContent: el texto no se inserta como HTML)
+            function renderTasks(sectionName) {
+                const taskList = document.getElementById(sectionName + '-tasks');
+                taskList.textContent = '';
+
+                // Ordenar: incompletas primero por prioridad (1 primero), luego por fecha/hora (antes primero, sin fecha al final); completadas al final
+                const sortedTasks = [...tasks[sectionName]].sort(function(a, b) {
+                    if (a.completed && !b.completed) return 1;
+                    if (!a.completed && b.completed) return -1;
+                    if (a.completed && b.completed) return a.priority - b.priority;
+                    if (a.priority !== b.priority) return a.priority - b.priority;
+                    const da = dueDateTime(a);
+                    const db = dueDateTime(b);
+                    if (da && !db) return -1;
+                    if (!da && db) return 1;
+                    if (da && db) return da.getTime() - db.getTime();
+                    return 0;
+                });
+
+                sortedTasks.forEach(function(task) {
+                    const taskItem = document.createElement('div');
+                    taskItem.className = 'task-item ' + getPriorityClass(task.priority) + (isOverdue(task) ? ' overdue' : '');
+
+                    const priorityColor = getPriorityColor(task.priority);
+
+                    const content = document.createElement('div');
+                    content.className = 'task-content';
+
+                    const textEl = document.createElement('div');
+                    textEl.className = 'task-text' + (task.completed ? ' completed' : '');
+                    textEl.textContent = task.text;
+                    content.appendChild(textEl);
+
+                    const progressWrap = document.createElement('div');
+                    progressWrap.className = 'task-progress';
+
+                    const selector = document.createElement('select');
+                    selector.className = 'progress-selector';
+                    [0, 25, 50, 75, 100].forEach(function(value) {
+                        const option = document.createElement('option');
+                        option.value = String(value);
+                        option.textContent = value + '%';
+                        if (task.progress === value) option.selected = true;
+                        selector.appendChild(option);
+                    });
+                    selector.addEventListener('change', function() {
+                        updateTaskProgress(sectionName, task.id, parseInt(this.value, 10));
+                    });
+                    progressWrap.appendChild(selector);
+
+                    const editButton = document.createElement('button');
+                    editButton.className = 'edit-button';
+                    editButton.type = 'button';
+                    editButton.textContent = '✎';
+                    editButton.title = 'Editar tarea';
+                    editButton.setAttribute('aria-label', 'Editar tarea');
+                    editButton.addEventListener('click', function() {
+                        startEdit(sectionName, task, textEl);
+                    });
+                    progressWrap.appendChild(editButton);
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'delete-button';
+                    deleteButton.type = 'button';
+                    deleteButton.textContent = '✕';
+                    deleteButton.title = 'Eliminar tarea';
+                    deleteButton.setAttribute('aria-label', 'Eliminar tarea');
+                    deleteButton.addEventListener('click', function() {
+                        if (window.confirm('¿Eliminar esta tarea?\n\n' + task.text)) {
+                            deleteTask(sectionName, task.id);
+                        }
+                    });
+                    progressWrap.appendChild(deleteButton);
+
+                    content.appendChild(progressWrap);
+                    taskItem.appendChild(content);
+
+                    if (task.dueDate) {
+                        const dueEl = document.createElement('div');
+                        dueEl.className = 'task-due';
+                        dueEl.textContent = 'Vence: ' + formatDue(task) + ' ';
+                        if (isOverdue(task)) {
+                            const label = document.createElement('span');
+                            label.className = 'overdue-label';
+                            label.textContent = '· Vencida';
+                            dueEl.appendChild(label);
+                        }
+                        taskItem.appendChild(dueEl);
+                    }
+
+                    const bar = document.createElement('div');
+                    bar.className = 'progress-bar';
+                    const fill = document.createElement('div');
+                    fill.className = 'progress-fill';
+                    fill.style.width = task.progress + '%';
+                    fill.style.backgroundColor = priorityColor;
+                    bar.appendChild(fill);
+                    taskItem.appendChild(bar);
+
+                    taskList.appendChild(taskItem);
+                });
+
+                updateCounters(sectionName);
+            }
+
+            // Editar tarea: el texto se convierte en un campo editable
+            function startEdit(sectionName, task, textEl) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'task-edit-input';
+                input.value = task.text;
+                let finished = false;
+
+                function finish(save) {
+                    if (finished) return;
+                    finished = true;
+                    if (save) {
+                        const value = input.value.trim();
+                        if (value) {
+                            task.text = value;
+                            saveTasks();
+                        }
+                    }
+                    renderTasks(sectionName);
+                }
+
+                input.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        finish(true);
+                    } else if (event.key === 'Escape') {
+                        finish(false);
+                    }
+                });
+                input.addEventListener('blur', function() {
+                    finish(true);
+                });
+                textEl.replaceWith(input);
+                input.focus();
+                input.select();
+            }
+
+            // Actualizar progreso de tarea
+            function updateTaskProgress(sectionName, taskId, progress) {
+                const taskIndex = tasks[sectionName].findIndex(function(task) { return task.id === taskId; });
+                if (taskIndex !== -1) {
+                    tasks[sectionName][taskIndex].progress = progress;
+                    tasks[sectionName][taskIndex].completed = progress === 100;
+                    saveTasks();
+                    renderTasks(sectionName);
+                }
+            }
+
+            // Eliminar tarea
+            function deleteTask(sectionName, taskId) {
+                tasks[sectionName] = tasks[sectionName].filter(function(task) { return task.id !== taskId; });
+                saveTasks();
+                renderTasks(sectionName);
+            }
+
+            // Limpiar completadas de una sección
+            document.querySelectorAll('.clear-completed-button').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const sectionName = this.dataset.section;
+                    const completedCount = tasks[sectionName].filter(function(t) { return t.completed; }).length;
+                    if (completedCount === 0) {
+                        showNotification('No hay tareas completadas en ' + getSectionLabel(sectionName) + '.');
+                        return;
+                    }
+                    if (window.confirm('¿Eliminar ' + completedCount + ' tarea(s) completada(s) de ' + getSectionLabel(sectionName) + '?')) {
+                        tasks[sectionName] = tasks[sectionName].filter(function(t) { return !t.completed; });
+                        saveTasks();
+                        renderTasks(sectionName);
+                    }
+                });
+            });
+
+            // Respaldo: exportar
+            document.getElementById('export-backup').addEventListener('click', function() {
+                const blob = new Blob([JSON.stringify(tasks, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                const today = new Date().toISOString().slice(0, 10);
+                link.href = url;
+                link.download = 'brendita-brend-respaldo-' + today + '.json';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+                showNotification('Respaldo exportado.');
+            });
+
+            // Respaldo: importar
+            document.getElementById('import-backup-button').addEventListener('click', function() {
+                document.getElementById('import-backup').click();
+            });
+
+            document.getElementById('import-backup').addEventListener('change', function(event) {
+                const file = event.target.files && event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function() {
+                    try {
+                        const parsed = JSON.parse(reader.result);
+                        if (!parsed || !Array.isArray(parsed.liomont) || !Array.isArray(parsed.brenda)) {
+                            showNotification('Ese archivo no es un respaldo válido de Brendita Brend.');
+                            return;
+                        }
+                        if (window.confirm('¿Reemplazar todas las tareas actuales con las del respaldo?')) {
+                            tasks = {
+                                liomont: parsed.liomont.map(normalizeTask),
+                                brenda: parsed.brenda.map(normalizeTask)
+                            };
+                            saveTasks();
+                            renderTasks('liomont');
+                            renderTasks('brenda');
+                            showNotification('Respaldo importado.');
+                        }
+                    } catch (e) {
+                        showNotification('No se pudo leer el archivo de respaldo.');
+                    }
+                    event.target.value = '';
+                };
+                reader.readAsText(file);
+            });
+
+            // Obtener clase de prioridad
+            function getPriorityClass(priority) {
+                switch (priority) {
+                    case 1: return 'critical';
+                    case 2: return 'medium';
+                    case 3: return 'low';
+                    default: return '';
+                }
+            }
+
+            // Obtener color de prioridad
+            function getPriorityColor(priority) {
+                switch (priority) {
+                    case 1: return '#e74c3c';
+                    case 2: return '#f39c12';
+                    case 3: return '#2ecc71';
+                    default: return '#3498db';
+                }
+            }
+
+            // Mostrar notificación (con botón para detener la alarma cuando la hay)
+            function showNotification(message, withAlarm) {
+                const notification = document.getElementById('notification');
+                const notificationMessage = document.getElementById('notification-message');
+
+                notificationMessage.textContent = message;
+                document.getElementById('stop-alarm').hidden = !withAlarm;
+                notification.classList.add('show');
+
+                setTimeout(function() {
+                    notification.classList.remove('show');
+                    if (!withAlarm) {
+                        document.getElementById('stop-alarm').hidden = true;
+                    }
+                }, withAlarm ? 15000 : 5000);
+            }
+
+            // Cerrar notificación
+            document.querySelector('.notification-close').addEventListener('click', function() {
+                stopAlarm();
+                document.getElementById('notification').classList.remove('show');
+            });
+
+            // Verificar tareas críticas pendientes
+            function checkCriticalTasks() {
+                const criticalLiomont = tasks.liomont.filter(function(task) { return task.priority === 1 && !task.completed; });
+                const criticalBrenda = tasks.brenda.filter(function(task) { return task.priority === 1 && !task.completed; });
+
+                if (criticalLiomont.length > 0 || criticalBrenda.length > 0) {
+                    const message = 'Tienes ' + (criticalLiomont.length + criticalBrenda.length) + ' tarea(s) crítica(s) pendiente(s) de completar.';
+                    showNotification(message);
+                }
+            }
+
+            // Configurar eventos para ambas secciones
+            setupSectionEvents('liomont');
+            setupSectionEvents('brenda');
+
+            // Cargar tareas guardadas
+            loadTasks();
+
+            // Verificar tareas críticas cada 30 minutos
+            setInterval(checkCriticalTasks, 30 * 60 * 1000);
+
+            // Verificar tareas críticas al cargar la página
+            checkCriticalTasks();
+
+            // Revisar recordatorios al cargar y cada 30 segundos (solo suena con la app abierta)
+            checkReminders();
+            setInterval(checkReminders, 30 * 1000);
+        });
+    </script>
+</body>
+</html>
